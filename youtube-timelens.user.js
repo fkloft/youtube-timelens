@@ -3,7 +3,7 @@
 // @description     Generates a timelens (see https://timelens.io/) from YouTube's storyboard thumbnails
 // @namespace       https://github.com/fkloft
 // @include         https://www.youtube.com/*
-// @version         0.2
+// @version         0.2.1
 // @grant           none
 // @run-at          document-end
 // ==/UserScript==
@@ -143,7 +143,8 @@ style.textContent = `
   display: none;
   image-rendering: optimizespeed;
 }
-.ytp-progress-bar:hover #timelens {
+.ytp-progress-bar:hover #timelens,
+.ytp-progress-bar-container.ytp-drag #timelens {
   opacity: 0.8;
   display: block;
 }
