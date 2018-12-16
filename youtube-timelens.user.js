@@ -3,7 +3,7 @@
 // @description     Generates a timelens (see https://timelens.io/) from YouTube's storyboard thumbnails
 // @namespace       https://github.com/fkloft
 // @include         https://www.youtube.com/*
-// @version         0.2.1
+// @version         1.0
 // @grant           none
 // @run-at          document-end
 // ==/UserScript==
@@ -126,8 +126,65 @@ async function insertTimelens() {
   }
 }
 
+function ProgressBarObserver() {
+  let timeLeft = document.querySelector(".ytp-bound-time-left");
+  let timeRight = document.querySelector(".ytp-bound-time-right");
+
+  if(!(timeLeft && timeRight))
+    throw "No video loaded yet";
+  
+  function getTime(element) {
+    let values = element.textContent.split(":");
+
+    let seconds = parseInt(values.pop());
+    if(values.length)
+      seconds += parseInt(values.pop()) * 60;
+    if(values.length)
+      seconds += parseInt(values.pop()) * 60 * 60;
+    if(values.length)
+      seconds += parseInt(values.pop()) * 60 * 60 * 24;
+
+    return seconds;
+  }
+
+  function getProgressParams() {
+    let length = parseInt(document.querySelector(".ytp-progress-bar").getAttribute("aria-valuemax"));
+    let start = getTime(timeLeft);
+    let end = getTime(timeRight);
+
+    return {length, start, end};
+  }
+
+
+  let observer = new MutationObserver(() => {
+    let timelens = document.getElementById("timelens");
+    if(!timelens) return;
+
+    let {start, end, length} = getProgressParams();
+    let offset = start / length;
+    let zoom = length / (end-start);
+    
+    timelens.style.transform = `scaleX(${zoom}) translateX(${-offset*100}%)`;
+  });
+  
+  observer.observe(timeLeft, { characterData: true, childList: true, subtree: true, });
+  observer.observe(timeRight, { characterData: true, childList: true, subtree: true, });
+  
+  this.destroy = function() {
+    observer.disconnect();
+  }
+}
+
+var progressObserver = null;
+
 setInterval(function() {
   insertTimelens().catch(console.error);
+  
+  if(!progressObserver) {
+    try {
+      progressObserver = new ProgressBarObserver();
+    } catch(e) { }
+  }
 }, 2000);
 
 var style = document.head.appendChild(document.createElement("style"));
@@ -142,6 +199,7 @@ style.textContent = `
   transition: opacity 0.5s;
   display: none;
   image-rendering: optimizespeed;
+  transform-origin: 0 0;
 }
 .ytp-progress-bar:hover #timelens,
 .ytp-progress-bar-container.ytp-drag #timelens {
