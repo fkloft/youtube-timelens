@@ -113,8 +113,6 @@ async function insertTimelens() {
   let old = document.getElementById("timelens");
   
   if((!old) || old.dataset.videoId != videoId) {
-    console.log(old, videoId);
-    
     let bar = document.querySelector(".ytp-progress-bar");
     let canvas = await getTimelens(videoId);
     canvas.id = "timelens";
