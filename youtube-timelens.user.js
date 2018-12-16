@@ -3,7 +3,7 @@
 // @description     Generates a timelens (see https://timelens.io/) from YouTube's storyboard thumbnails
 // @namespace       https://github.com/fkloft
 // @include         https://www.youtube.com/*
-// @version         1.1.1
+// @version         1.2.0
 // @grant           none
 // @run-at          document-end
 // ==/UserScript==
@@ -80,12 +80,27 @@ function loadImage(url) {
 	});
 }
 
+async function loadSheet(params, sheet, ctx) {
+	let sheetSize = params.cols * params.rows;
+	let end = Math.min(params.count, sheet * sheetSize + sheetSize);
+	let image = await loadImage(params.url.replace(/\$M/, ""+sheet));
+	
+	for(let i = sheet * sheetSize; i < end; i++) {
+		let absrow = parseInt(i / params.cols);
+		let sheet = parseInt(absrow / params.rows);
+		let row = absrow % params.rows;
+		let col = i % params.cols;
+		
+		let sx = col * params.width;
+		let sy = row * params.height;
+		ctx.drawImage(image, sx, sy, params.width, params.height, i, 0, 1, params.height);
+	}
+}
+
 async function getTimelens(videoId) {
 	let storyboard = await getStoryboard(videoId);
 	
 	let params = storyboard.levels.pop();
-	let sheetCount = Math.ceil(params.count / params.cols / params.rows);
-	let sheets = await Promise.all(range(sheetCount).map(i => loadImage(params.url.replace(/\$M/, ""+i))));
 	
 	let canvas = document.createElement("canvas");
 	canvas.dataset.videoId = videoId;
@@ -94,19 +109,8 @@ async function getTimelens(videoId) {
 	canvas.style.height = params.height + "px";
 	let ctx = canvas.getContext("2d")
 	
-	let vals = [];
-	
-	for(let i = 0; i < params.count; i++) {
-		let absrow = parseInt(i / params.cols);
-		let sheet = parseInt(absrow / params.rows);
-		let row = absrow % params.rows;
-		let col = i % params.cols;
-		
-		let image = sheets[sheet];
-		let sx = col * params.width;
-		let sy = row * params.height;
-		ctx.drawImage(image, sx, sy, params.width, params.height, i, 0, 1, params.height);
-	}
+	let sheetCount = Math.ceil(params.count / params.cols / params.rows);
+		range(sheetCount).forEach(i => loadSheet(params, i, ctx));
 	
 	return canvas;
 }
