@@ -4,6 +4,7 @@
 // @namespace       https://github.com/fkloft
 // @include         https://www.youtube.com/*
 // @version         0.1
+// @grant           none
 // @run-at          document-end
 // ==/UserScript==
 
@@ -107,14 +108,14 @@ async function getTimelens(videoId) {
   return canvas;
 }
 
-setInterval(async function() {
+async function insertTimelens() {
   let videoId = getVideoId();
   let old = document.getElementById("timelens");
   
   if((!old) || old.dataset.videoId != videoId) {
     console.log(old, videoId);
     
-    let bar = $(".ytp-progress-bar-container");
+    let bar = document.querySelector(".ytp-progress-bar");
     let canvas = await getTimelens(videoId);
     canvas.id = "timelens";
     
@@ -123,6 +124,10 @@ setInterval(async function() {
     
     bar.appendChild(canvas);
   }
+}
+
+setInterval(function() {
+  insertTimelens().catch(console.error);
 }, 2000);
 
 var style = document.head.appendChild(document.createElement("style"));
@@ -138,8 +143,9 @@ style.textContent = `
   display: none;
   image-rendering: optimizespeed;
 }
-.ytp-progress-bar-container:hover #timelens {
+.ytp-progress-bar:hover #timelens {
   opacity: 0.8;
   display: block;
 }
 `;
+
