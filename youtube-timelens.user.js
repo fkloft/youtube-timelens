@@ -3,7 +3,7 @@
 // @description     Generates a timelens (see https://timelens.io/) from YouTube's storyboard thumbnails
 // @namespace       https://github.com/fkloft
 // @include         https://www.youtube.com/*
-// @version         1.0.2
+// @version         1.1.0
 // @grant           none
 // @run-at          document-end
 // ==/UserScript==
@@ -60,7 +60,8 @@ async function getStoryboard(videoId) {
 }
 
 function getVideoId() {
-  	return (new URLSearchParams(location.search)).get("v");
+  return location.href.match(/^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*/)[1];
+  //return (new URLSearchParams(location.search)).get("v");
 }
 
 function range(n) {
