@@ -11,7 +11,7 @@
 "use strict";
 
 async function getStoryboard(videoId) {
-	let result = await fetch("https://www.youtube.com/get_video_info?video_id="+videoId+"&asv=3&el=detailpage&hl=en_US")
+	let result = await fetch("https://www.youtube.com/get_video_info?video_id="+videoId+"&asv=3&el=detailpage&hl=en_US&html5=1&c=TVHTML5&cver=6.20180913")
 	let text = await result.text();
 	let videoInfo = new URLSearchParams(text);
 	let player_response = videoInfo.get("player_response");
